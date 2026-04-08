@@ -13,8 +13,6 @@ class HomeTab extends StatefulWidget {
 }
 
 class _HomeTabState extends State<HomeTab> with SingleTickerProviderStateMixin {
-  static const _demoLink = 'https://www.google.com';
-
   late final AnimationController _proPulse;
   late final Animation<double> _proScale;
 

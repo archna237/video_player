@@ -254,6 +254,7 @@ class AppGradientBackground extends StatelessWidget {
                   ),
                 ),
               ),
+
             ),
           ),
 
