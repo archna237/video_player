@@ -73,7 +73,7 @@ class SettingsTab extends StatelessWidget {
       scale: 0.9,
       child: CupertinoSwitch(
         value: value,
-        activeColor: AppColors.primary,
+        activeTrackColor: AppColors.primary,
         onChanged: (val) {},
       ),
     );

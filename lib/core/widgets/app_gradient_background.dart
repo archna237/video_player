@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:video_player/core/theme/app_colors.dart';
 
 class AppGradientBackground extends StatelessWidget {
   const AppGradientBackground({super.key, required this.child});
@@ -204,11 +203,11 @@ class AppGradientBackground extends StatelessWidget {
                     begin: Alignment.topRight,
                     end: Alignment.bottomLeft,
                     colors: [
-                      Colors.black.withOpacity(0.25),
+                      Colors.black.withValues(alpha: 0.25),
                       Colors.transparent,
-                      Colors.black.withOpacity(0.18),
+                      Colors.black.withValues(alpha: 0.18),
                       Colors.transparent,
-                      Colors.black.withOpacity(0.22),
+                      Colors.black.withValues(alpha: 0.22),
                     ],
                     stops: [0.0, 0.3, 0.5, 0.7, 1.0],
                   ),
@@ -227,9 +226,9 @@ class AppGradientBackground extends StatelessWidget {
                     end: Alignment.bottomRight,
                     colors: [
                       Colors.transparent,
-                      Colors.black.withOpacity(0.15),
+                      Colors.black.withValues(alpha: 0.15),
                       Colors.transparent,
-                      Colors.black.withOpacity(0.18),
+                      Colors.black.withValues(alpha: 0.18),
                     ],
                     stops: [0.2, 0.45, 0.65, 0.9],
                   ),

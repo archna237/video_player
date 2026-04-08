@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/features/downloads/domain/download_item.dart';
+import 'package:video_player/features/pro/presentation/pro_screen.dart';
 import 'package:video_player/features/shell/presentation/main_shell_screen.dart';
 import 'package:video_player/features/splash/presentation/splash_screen.dart';
 import 'package:video_player/features/videos/presentation/video_player_screen.dart';
@@ -19,6 +20,11 @@ abstract final class AppRoutes {
         return MaterialPageRoute(
           settings: settings,
           builder: (_) => const MainShellScreen(),
+        );
+      case ProScreen.routeName:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (_) => const ProScreen(),
         );
       case VideoPlayerScreen.routeName:
         final args = settings.arguments;
