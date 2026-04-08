@@ -15,7 +15,7 @@ class MainShellScreen extends StatefulWidget {
 }
 
 class _MainShellScreenState extends State<MainShellScreen> {
-  int _currentIndex = 3; // Setting initially to 3 since user is viewing settings screenshot
+  int _currentIndex = 0; // Home screen shows first after splash
 
   final _pages = const [
     HomeTab(),
