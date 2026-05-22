@@ -2,7 +2,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:video_player/core/constants/app_config.dart';
+import 'package:video_player/core/locale/locale_controller.dart';
 import 'package:video_player/core/theme/app_colors.dart';
+import 'package:video_player/core/widgets/section_header.dart';
+import 'package:video_player/core/widgets/settings_tile.dart';
+import 'package:video_player/features/settings/presentation/disclaimer_dialog.dart';
+import 'package:video_player/features/settings/presentation/how_to_download_screen.dart';
+import 'package:video_player/l10n/app_localizations.dart';
+import 'package:video_player/main.dart';
 
 class SettingsTab extends StatefulWidget {
   const SettingsTab({super.key});
@@ -15,88 +23,10 @@ class _SettingsTabState extends State<SettingsTab> {
   bool _ongoingNotification = true;
   bool _wifiOnly = false;
   bool _syncToGallery = false;
-  String _selectedLanguage = 'English';
 
-  final List<String> _languages = const [
-    'English',
-    'Hindi',
-    'Spanish',
-    'Portuguese',
-    'Arabic',
-  ];
+  LocaleController get _localeController => localeController;
 
-  static const String _storeUrl =
-      'https://play.google.com/store/apps/details?id=com.videosaver.downloadvideo.mp4.app';
-  static const String _privacyPolicyUrl =
-      'https://play.google.com/store/apps/details?id=com.videosaver.downloadvideo.mp4.app';
-
-  Widget _buildSectionHeader(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 20, top: 24, bottom: 12),
-      child: Text(
-        title,
-        style: const TextStyle(
-          color: Colors.white70,
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          letterSpacing: 1.0,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTile({
-    required IconData icon,
-    required String title,
-    Widget? trailing,
-    VoidCallback? onTap,
-  }) {
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-      leading: Container(
-        height: 48,
-        width: 48,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: LinearGradient(
-            colors: [
-              Colors.white.withValues(alpha: 0.1),
-              Colors.white.withValues(alpha: 0.0),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.05),
-            width: 1.0,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.2),
-              blurRadius: 10,
-              offset: const Offset(2, 4),
-            )
-          ],
-        ),
-        child: Icon(icon, color: Colors.white.withValues(alpha: 0.95), size: 22),
-      ),
-      title: Text(
-        title,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-      trailing: trailing ?? const Icon(Icons.chevron_right, color: Colors.white54, size: 20),
-      onTap: onTap ?? () {},
-    );
-  }
-
-  Widget _buildSwitch({
-    required bool value,
-    required ValueChanged<bool> onChanged,
-  }) {
+  Widget _switch({required bool value, required ValueChanged<bool> onChanged}) {
     return Transform.scale(
       scale: 0.9,
       child: CupertinoSwitch(
@@ -108,21 +38,23 @@ class _SettingsTabState extends State<SettingsTab> {
   }
 
   Future<void> _openUrl(String url) async {
+    final l10n = context.l10n;
     final ok = await launchUrl(
       Uri.parse(url),
       mode: LaunchMode.externalApplication,
     );
     if (!mounted || ok) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Could not open link.')),
+      SnackBar(content: Text(l10n.couldNotOpenLink)),
     );
   }
 
   Future<void> _shareApp() async {
+    final l10n = context.l10n;
     await SharePlus.instance.share(
       ShareParams(
-        title: 'Video Player',
-        text: 'Try this app: $_storeUrl',
+        title: l10n.appName,
+        text: '${l10n.shareAppMessage} ${AppConfig.storeUrl}',
       ),
     );
   }
@@ -130,18 +62,20 @@ class _SettingsTabState extends State<SettingsTab> {
   Future<void> _showLanguageDialog() async {
     await showDialog<void>(
       context: context,
-      builder: (context) {
+      builder: (dialogContext) {
+        final dialogL10n = dialogContext.l10n;
         return AlertDialog(
           backgroundColor: const Color(0xFF18122B),
-          title: const Text('Select language'),
+          title: Text(dialogL10n.chooseLanguage),
           content: SizedBox(
             width: 320,
             child: ListView(
               shrinkWrap: true,
-              children: _languages.map((language) {
-                final selected = language == _selectedLanguage;
+              children: AppLocalizations.languageCodes.map((code) {
+                final selected =
+                    _localeController.locale.languageCode == code;
                 return ListTile(
-                  title: Text(language),
+                  title: Text(dialogL10n.languageNameFor(code)),
                   trailing: Icon(
                     selected
                         ? Icons.radio_button_checked_rounded
@@ -150,9 +84,10 @@ class _SettingsTabState extends State<SettingsTab> {
                         ? AppColors.primary
                         : Colors.white.withValues(alpha: 0.6),
                   ),
-                  onTap: () {
-                    setState(() => _selectedLanguage = language);
-                    Navigator.pop(context);
+                  onTap: () async {
+                    await _localeController.setLanguageCode(code);
+                    if (dialogContext.mounted) Navigator.pop(dialogContext);
+                    if (mounted) setState(() {});
                   },
                 );
               }).toList(),
@@ -163,21 +98,19 @@ class _SettingsTabState extends State<SettingsTab> {
     );
   }
 
-  void _showComingSoon(String title) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$title coming soon')),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final currentLang =
+        l10n.languageNameFor(_localeController.locale.languageCode);
+
     return SafeArea(
       child: ListView(
         padding: const EdgeInsets.only(top: 16, bottom: 40),
         children: [
           Center(
             child: Text(
-              'Settings',
+              l10n.settingsTitle,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontSize: 22,
                     fontWeight: FontWeight.w700,
@@ -186,91 +119,90 @@ class _SettingsTabState extends State<SettingsTab> {
             ),
           ),
           const SizedBox(height: 16),
-          
-          _buildSectionHeader('SHORTCUTS'),
-          _buildTile(
+          SectionHeader(title: l10n.sectionShortcuts),
+          SettingsTile(
             icon: Icons.notifications_rounded,
-            title: 'On-going Notification',
-            trailing: _buildSwitch(
+            title: l10n.ongoingNotification,
+            trailing: _switch(
               value: _ongoingNotification,
-              onChanged: (val) => setState(() => _ongoingNotification = val),
+              onChanged: (v) => setState(() => _ongoingNotification = v),
             ),
-            onTap: () => setState(() => _ongoingNotification = !_ongoingNotification),
+            onTap: () =>
+                setState(() => _ongoingNotification = !_ongoingNotification),
           ),
-
-          _buildSectionHeader('GENERAL'),
-          _buildTile(
+          SectionHeader(title: l10n.sectionGeneral),
+          SettingsTile(
             icon: Icons.wifi_rounded,
-            title: 'Download with Wifi only',
-            trailing: _buildSwitch(
+            title: l10n.wifiOnly,
+            trailing: _switch(
               value: _wifiOnly,
-              onChanged: (val) => setState(() => _wifiOnly = val),
+              onChanged: (v) => setState(() => _wifiOnly = v),
             ),
             onTap: () => setState(() => _wifiOnly = !_wifiOnly),
           ),
-          _buildTile(
+          SettingsTile(
             icon: Icons.image_rounded,
-            title: 'Sync to Gallery',
-            trailing: _buildSwitch(
+            title: l10n.syncGallery,
+            trailing: _switch(
               value: _syncToGallery,
-              onChanged: (val) => setState(() => _syncToGallery = val),
+              onChanged: (v) => setState(() => _syncToGallery = v),
             ),
             onTap: () => setState(() => _syncToGallery = !_syncToGallery),
           ),
-          _buildTile(
+          SettingsTile(
             icon: Icons.info_rounded,
-            title: 'Disclaimer',
-            onTap: () => _showComingSoon('Disclaimer'),
+            title: l10n.disclaimer,
+            onTap: () => showDisclaimerDialog(context),
           ),
-          _buildTile(
+          SettingsTile(
             icon: Icons.help_rounded,
-            title: 'How to Download',
-            onTap: () => _showComingSoon('How to Download'),
+            title: l10n.howToDownload,
+            onTap: () => Navigator.of(context).pushNamed(
+              HowToDownloadScreen.routeName,
+            ),
           ),
-          _buildTile(
+          SettingsTile(
             icon: Icons.lock_rounded,
-            title: 'Setup Passcode',
-            onTap: () => _showComingSoon('Setup Passcode'),
+            title: l10n.setupPasscode,
+            onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n.passcodeComingSoon)),
+            ),
           ),
-
-          _buildSectionHeader('MORE'),
-          _buildTile(
+          SectionHeader(title: l10n.sectionMore),
+          SettingsTile(
             icon: Icons.translate_rounded,
-            title: 'Language',
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  _selectedLanguage,
-                  style: const TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
+            title: l10n.language,
+            trailing: Text(
+              currentLang,
+              style: const TextStyle(
+                color: AppColors.primary,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
             ),
             onTap: _showLanguageDialog,
           ),
-          _buildTile(
+          SettingsTile(
             icon: Icons.chat_bubble_rounded,
-            title: 'Send Feedback',
-            onTap: () => _showComingSoon('Send Feedback'),
+            title: l10n.sendFeedback,
+            onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(l10n.feedbackComingSoon)),
+            ),
           ),
-          _buildTile(
+          SettingsTile(
             icon: Icons.star_rounded,
-            title: 'Rate us',
-            onTap: () => _openUrl(_storeUrl),
+            title: l10n.rateUs,
+            onTap: () => _openUrl(AppConfig.storeUrl),
           ),
-          _buildTile(
+          SettingsTile(
             icon: Icons.share_rounded,
-            title: 'Share app',
+            title: l10n.shareApp,
             onTap: _shareApp,
           ),
-          _buildTile(
+          SettingsTile(
             icon: Icons.privacy_tip_rounded,
-            title: 'Privacy Policy',
-            onTap: () => _openUrl(_privacyPolicyUrl),
+            title: l10n.privacyPolicy,
+            onTap: () => _openUrl(AppConfig.storeUrl),
           ),
           const SizedBox(height: 40),
         ],
@@ -278,4 +210,3 @@ class _SettingsTabState extends State<SettingsTab> {
     );
   }
 }
-

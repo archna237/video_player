@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:video_player/core/widgets/gradient_cta_button.dart';
+import 'package:video_player/l10n/app_localizations.dart';
 
 class ProScreen extends StatefulWidget {
   const ProScreen({super.key});
@@ -11,7 +13,7 @@ class ProScreen extends StatefulWidget {
 
 class _ProScreenState extends State<ProScreen>
     with SingleTickerProviderStateMixin {
-  int _selectedPlan = 0; // 0=Weekly, 1=Monthly, 2=Yearly
+  int _selectedPlan = 0;
 
   late final AnimationController _pulseController;
   late final Animation<double> _pulseAnim;
@@ -36,103 +38,66 @@ class _ProScreenState extends State<ProScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.l10n;
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          // ── Dark Deep Purple Background ──────────────────────────────
           Positioned.fill(
-            child: Container(
+            child: DecoratedBox(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Color(0xFF1A0A2E), // very dark top
-                    Color(0xFF13052A), // dark mid
-                    Color(0xFF0D0318), // near-black bottom
+                    Color(0xFF1A0A2E),
+                    Color(0xFF13052A),
+                    Color(0xFF0D0318),
                   ],
                   stops: [0.0, 0.55, 1.0],
                 ),
               ),
             ),
           ),
-
-          // ── Subtle purple glow blob at top ───────────────────────────
           Positioned(
             top: -80,
             left: -60,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFF6B3FBF).withValues(alpha: 0.35),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
+            child: _glowBlob(300, const Color(0xFF6B3FBF), 0.35),
           ),
           Positioned(
             top: 60,
             right: -80,
-            child: Container(
-              width: 260,
-              height: 260,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFF9B59D0).withValues(alpha: 0.20),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
+            child: _glowBlob(260, const Color(0xFF9B59D0), 0.20),
           ),
-
-          // ── Main Scrollable Content ──────────────────────────────────
           SafeArea(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               child: Column(
                 children: [
-                  // Close button
                   Align(
                     alignment: Alignment.topLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 8, top: 4),
-                      child: IconButton(
-                        onPressed: () => Navigator.pop(context),
-                        icon: Container(
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white.withValues(alpha: 0.12),
-                          ),
-                          padding: const EdgeInsets.all(4),
-                          child: const Icon(
-                            Icons.close_rounded,
-                            color: Colors.white,
-                            size: 20,
-                          ),
+                    child: IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withValues(alpha: 0.12),
+                        ),
+                        padding: const EdgeInsets.all(4),
+                        child: const Icon(
+                          Icons.close_rounded,
+                          color: Colors.white,
+                          size: 20,
                         ),
                       ),
                     ),
                   ),
-
-                  // ── Top Drama Poster Collage ──────────────────────────
                   _buildTopCollage(),
-
                   const SizedBox(height: 18),
-
-                  // ── "Video Player PRO" Title ──────────────────────────
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Text(
-                      'Video Player PRO',
+                      l10n.appNamePro,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Colors.white,
@@ -151,59 +116,49 @@ class _ProScreenState extends State<ProScreen>
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 18),
-
-                  // ── Benefits ─────────────────────────────────────────
-                  const _BenefitLine(text: '100% Ad-Free'),
-                  const _BenefitLine(text: 'Unlock Download all video'),
-                  const _BenefitLine(text: 'Unlock Video player'),
-                  const _BenefitLine(text: 'HD video'),
-
+                  _BenefitLine(text: l10n.benefitAdFree),
+                  _BenefitLine(text: l10n.benefitDownloadAll),
+                  _BenefitLine(text: l10n.benefitPlayer),
+                  _BenefitLine(text: l10n.benefitHd),
                   const SizedBox(height: 22),
-
-                  // ── Plan Tiles ────────────────────────────────────────
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 18),
                     child: Column(
                       children: [
                         _PlanTile(
                           selected: _selectedPlan == 0,
-                          title: 'Weekly',
-                          subtitle: '3 days free trial',
-                          price: 'Then ₹430.00',
+                          title: l10n.planWeekly,
+                          subtitle: l10n.planTrialSubtitle,
+                          price: l10n.planWeeklyPrice,
                           period: '/week',
                           showTag: true,
-                          onTap: () => setState(() => _selectedPlan = 0),
+                          bestValueLabel: l10n.bestValueTag,
                           pulseAnim: _pulseAnim,
+                          onTap: () => setState(() => _selectedPlan = 0),
                         ),
                         const SizedBox(height: 12),
                         _PlanTile(
                           selected: _selectedPlan == 1,
-                          title: 'Monthly',
-                          subtitle: '',
-                          price: '₹850.00',
+                          title: l10n.planMonthly,
+                          price: l10n.planMonthlyPrice,
                           period: '/month',
-                          onTap: () => setState(() => _selectedPlan = 1),
                           pulseAnim: _pulseAnim,
+                          onTap: () => setState(() => _selectedPlan = 1),
                         ),
                         const SizedBox(height: 12),
                         _PlanTile(
                           selected: _selectedPlan == 2,
-                          title: 'Yearly',
-                          subtitle: '',
-                          price: '₹1,600.00',
+                          title: l10n.planYearly,
+                          price: l10n.planYearlyPrice,
                           period: '/year',
-                          onTap: () => setState(() => _selectedPlan = 2),
                           pulseAnim: _pulseAnim,
+                          onTap: () => setState(() => _selectedPlan = 2),
                         ),
                       ],
                     ),
                   ),
-
                   const SizedBox(height: 20),
-
-                  // ── No Payment Now ────────────────────────────────────
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -220,41 +175,32 @@ class _ProScreenState extends State<ProScreen>
                         ),
                       ),
                       const SizedBox(width: 8),
-                      const Text(
-                        'No Payment Now',
+                      Text(
+                        l10n.noPaymentNow,
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
-                          letterSpacing: 0.2,
                         ),
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 16),
-
-                  // ── CTA Button ────────────────────────────────────────
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 18),
-                    child: _GradientButton(
-                      onTap: () {},
-                      label: 'Start with free trial',
+                    child: GradientCtaButton(
+                      label: l10n.startFreeTrial,
+                      onPressed: () {},
                     ),
                   ),
-
                   const SizedBox(height: 12),
-
-                  // ── Renew Note ────────────────────────────────────────
                   Text(
-                    'Renew ₹430.00/week  Cancel anytime!',
+                    l10n.renewNote,
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.65),
                       fontSize: 12.5,
-                      letterSpacing: 0.1,
                     ),
                   ),
-
                   const SizedBox(height: 24),
                 ],
               ),
@@ -265,102 +211,63 @@ class _ProScreenState extends State<ProScreen>
     );
   }
 
-  // ── Drama Poster Collage Layout ────────────────────────────────────────────
+  Widget _glowBlob(double size, Color color, double opacity) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [color.withValues(alpha: opacity), Colors.transparent],
+        ),
+      ),
+    );
+  }
+
   Widget _buildTopCollage() {
     return SizedBox(
       height: 200,
       child: Stack(
         children: [
-          // Full-width semi-transparent drama grid background
           Positioned.fill(
             child: ClipRect(
               child: Image.asset(
                 'assets/images/drama_collage.jpg',
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => _buildFallbackCollage(),
+                errorBuilder: (_, __, ___) => _fallbackCollage(),
               ),
             ),
           ),
-
-          // Bottom gradient fade so it blends into background
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    const Color(0xFF1A0A2E).withValues(alpha: 0.65),
-                    const Color(0xFF13052A),
-                  ],
-                  stops: const [0.0, 0.72, 1.0],
-                ),
-              ),
-            ),
-          ),
-
-          // Side fade-outs
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                  colors: [
-                    const Color(0xFF1A0A2E).withValues(alpha: 0.6),
-                    Colors.transparent,
-                    Colors.transparent,
-                    const Color(0xFF1A0A2E).withValues(alpha: 0.6),
-                  ],
-                  stops: const [0.0, 0.18, 0.82, 1.0],
-                ),
-              ),
-            ),
-          ),
-
-          // Center raised card (featured image highlighted)
+          Positioned.fill(child: _collageFade()),
           Align(
             alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 0),
-              child: Container(
-                width: 120,
-                height: 160,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.25),
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.6),
-                      blurRadius: 20,
-                      spreadRadius: 2,
-                    ),
-                  ],
+            child: Container(
+              width: 120,
+              height: 160,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.25),
+                  width: 1.5,
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(17),
-                  child: Image.asset(
-                    'assets/images/drama_collage.jpg',
-                    fit: BoxFit.cover,
-                    alignment: const Alignment(0, -0.5),
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Color(0xFF7B4FA6), Color(0xFF3C1F6B)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                      ),
-                      child: const Icon(
-                        Icons.movie_rounded,
-                        color: Colors.white54,
-                        size: 48,
-                      ),
-                    ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.6),
+                    blurRadius: 20,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(17),
+                child: Image.asset(
+                  'assets/images/drama_collage.jpg',
+                  fit: BoxFit.cover,
+                  alignment: const Alignment(0, -0.5),
+                  errorBuilder: (_, __, ___) => const Icon(
+                    Icons.movie_rounded,
+                    color: Colors.white54,
+                    size: 48,
                   ),
                 ),
               ),
@@ -371,14 +278,30 @@ class _ProScreenState extends State<ProScreen>
     );
   }
 
-  Widget _buildFallbackCollage() {
+  Widget _collageFade() {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.transparent,
+            const Color(0xFF1A0A2E).withValues(alpha: 0.65),
+            const Color(0xFF13052A),
+          ],
+          stops: const [0.0, 0.72, 1.0],
+        ),
+      ),
+    );
+  }
+
+  Widget _fallbackCollage() {
     final colors = [
       const Color(0xFF6B3482),
       const Color(0xFF4A2172),
       const Color(0xFF7E4590),
       const Color(0xFF3B1A5F),
       const Color(0xFF5C2E80),
-      const Color(0xFF8B4FAA),
     ];
     return GridView.builder(
       physics: const NeverScrollableScrollPhysics(),
@@ -389,12 +312,10 @@ class _ProScreenState extends State<ProScreen>
         mainAxisSpacing: 2,
       ),
       itemCount: 20,
-      itemBuilder: (context, i) => Container(color: colors[i % colors.length]),
+      itemBuilder: (_, i) => ColoredBox(color: colors[i % colors.length]),
     );
   }
 }
-
-// ── Benefit Row ────────────────────────────────────────────────────────────────
 
 class _BenefitLine extends StatelessWidget {
   const _BenefitLine({required this.text});
@@ -407,11 +328,7 @@ class _BenefitLine extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 5),
       child: Row(
         children: [
-          const Icon(
-            Icons.check_rounded,
-            size: 18,
-            color: Colors.white,
-          ),
+          const Icon(Icons.check_rounded, size: 18, color: Colors.white),
           const SizedBox(width: 12),
           Text(
             text,
@@ -419,7 +336,6 @@ class _BenefitLine extends StatelessWidget {
               color: Colors.white,
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              letterSpacing: 0.1,
             ),
           ),
         ],
@@ -428,18 +344,17 @@ class _BenefitLine extends StatelessWidget {
   }
 }
 
-// ── Plan Tile ──────────────────────────────────────────────────────────────────
-
 class _PlanTile extends StatelessWidget {
   const _PlanTile({
     required this.selected,
     required this.title,
-    required this.subtitle,
     required this.price,
     required this.period,
     required this.onTap,
     required this.pulseAnim,
+    this.subtitle = '',
     this.showTag = false,
+    this.bestValueLabel = '',
   });
 
   final bool selected;
@@ -450,6 +365,7 @@ class _PlanTile extends StatelessWidget {
   final VoidCallback onTap;
   final Animation<double> pulseAnim;
   final bool showTag;
+  final String bestValueLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -460,7 +376,6 @@ class _PlanTile extends StatelessWidget {
         builder: (context, child) {
           return AnimatedContainer(
             duration: const Duration(milliseconds: 250),
-            curve: Curves.easeOut,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
               color: selected
@@ -476,7 +391,7 @@ class _PlanTile extends StatelessWidget {
                   ? [
                       BoxShadow(
                         color: const Color(0xFF7B55FF)
-                            .withValues(alpha: 0.28 * (pulseAnim.value)),
+                            .withValues(alpha: 0.28 * pulseAnim.value),
                         blurRadius: 18 * pulseAnim.value,
                         spreadRadius: 1,
                       ),
@@ -489,27 +404,20 @@ class _PlanTile extends StatelessWidget {
         child: Stack(
           clipBehavior: Clip.none,
           children: [
-            // Main content
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Left: title + subtitle
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           title,
-                          style: TextStyle(
-                            color: selected
-                                ? Colors.white
-                                : Colors.white.withValues(alpha: 0.9),
+                          style: const TextStyle(
+                            color: Colors.white,
                             fontSize: 17,
                             fontWeight: FontWeight.w800,
-                            letterSpacing: 0.1,
                           ),
                         ),
                         if (subtitle.isNotEmpty) ...[
@@ -519,23 +427,19 @@ class _PlanTile extends StatelessWidget {
                             style: TextStyle(
                               color: Colors.white.withValues(alpha: 0.75),
                               fontSize: 13,
-                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
                       ],
                     ),
                   ),
-                  // Right: price
                   RichText(
                     text: TextSpan(
+                      style: const TextStyle(color: Colors.white),
                       children: [
                         TextSpan(
                           text: price,
-                          style: TextStyle(
-                            color: selected
-                                ? Colors.white
-                                : Colors.white.withValues(alpha: 0.85),
+                          style: const TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w800,
                           ),
@@ -545,7 +449,6 @@ class _PlanTile extends StatelessWidget {
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.65),
                             fontSize: 13,
-                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ],
@@ -554,8 +457,6 @@ class _PlanTile extends StatelessWidget {
                 ],
               ),
             ),
-
-            // White pill tag at top-right (only when selected)
             if (showTag && selected)
               Positioned(
                 top: -11,
@@ -568,106 +469,17 @@ class _PlanTile extends StatelessWidget {
                     borderRadius: BorderRadius.circular(11),
                   ),
                   alignment: Alignment.center,
-                  child: const Text(
-                    'Best Value',
-                    style: TextStyle(
+                  child: Text(
+                    bestValueLabel,
+                    style: const TextStyle(
                       color: Color(0xFF5B2BAA),
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
-                      letterSpacing: 0.3,
                     ),
                   ),
                 ),
               ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-// ── Gradient CTA Button ────────────────────────────────────────────────────────
-
-class _GradientButton extends StatefulWidget {
-  const _GradientButton({required this.onTap, required this.label});
-
-  final VoidCallback onTap;
-  final String label;
-
-  @override
-  State<_GradientButton> createState() => _GradientButtonState();
-}
-
-class _GradientButtonState extends State<_GradientButton>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _ctrl;
-  late final Animation<double> _scale;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 120),
-      lowerBound: 0.0,
-      upperBound: 1.0,
-    );
-    _scale = Tween<double>(begin: 1.0, end: 0.96).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: (_) => _ctrl.forward(),
-      onTapUp: (_) {
-        _ctrl.reverse();
-        widget.onTap();
-      },
-      onTapCancel: () => _ctrl.reverse(),
-      child: AnimatedBuilder(
-        animation: _scale,
-        builder: (_, child) =>
-            Transform.scale(scale: _scale.value, child: child),
-        child: Container(
-          width: double.infinity,
-          height: 58,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: const LinearGradient(
-              colors: [
-                Color(0xFFE17BFF), // light pink-purple left
-                Color(0xFFB560FF), // mid purple
-                Color(0xFF9B4FF0), // deep purple right
-              ],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFFB048FF).withValues(alpha: 0.45),
-                blurRadius: 22,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          alignment: Alignment.center,
-          child: const Text(
-            'Start with free trial',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 17,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.3,
-            ),
-          ),
         ),
       ),
     );
